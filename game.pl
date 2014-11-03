@@ -52,7 +52,7 @@ replace([_|T], 0, X, [X|T]).
 replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
 replace(L, _, _, L).
 
-
+% check if position is valid
 checkPosition(Board, X, Y):-
 	nth0(X, Board, Line), nth0(Y, Line, Element),
 	(Element == vv ; Element == p1).
@@ -77,10 +77,12 @@ move([Line|Tail], Xinitial,Yinitial, Xfinal,Yfinal, BoardAux, FinalBoard, Counte
 		move(Tail, Xinitial,Yinitial, Xfinal,Yfinal, Aux, FinalBoard, C, Player)
 	).
 
+% return the value to insert at position where to move to
 nextPositionValue(Board, X, Y, Value, Pawn):-
 	nth0(X, Board, Line), nth0(Y, Line, Element),
 	(Element==vv -> Value is Pawn; P).
 
+% read from terminal position where to move to
 choose_move_player(Board, Player, XDest, YDest) :-
 	repeat,
     write('Move Dest Line (number): '),
@@ -94,6 +96,7 @@ player(b1).
 next_player(player1, player2).
 next_player(player2, player1).
 
+% game auxiliar function, no init
 game_aux(Board, Player):-
 	printBoard(Board),nl,nl,
 	write(Player) , write(' '), write('turn. '), nl,
@@ -102,7 +105,7 @@ game_aux(Board, Player):-
 	next_player(Player, NextPlayer),
 	game_aux(FinalBoard, NextPlayer).
 
-
+% game function with init
 game(Board):-
 	initBoard(Board),
 	game_aux(Board, player1).
