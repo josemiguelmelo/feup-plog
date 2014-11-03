@@ -1,0 +1,36 @@
+O tabuleiro de jogo irá ser representado utilizando uma lista de listas, de dimensoes 5x5. Cada posição desta lista irá ser ocupada com os valores representativos de cada peça:
+	- A3 -> pilha completa do jogador A
+	- B3 -> pilha completa do jogador B
+	- P{num} -> numero de pecas na casa
+	- A{num} -> posicao do jogador A. Possui {num} peças.
+	- B{num} -> posicao do jogador B. Possui {num} peças.
+	- VV -> posicao vazia
+
+Assim, no inicio de jogo, o tabuleiro será representado da seguinte forma:
+	[ 
+		[ P1, P1, P1, P1, B1 ], 
+		[ P1, P1, P1, P1, P1 ], 
+		[ P1, P1, P1, P1, P1 ], 
+		[ P1, P1, P1, P1, P1 ], 
+	  	[ A1, P1, P1, P1, P1 ],
+	]
+
+Posteriormente, numa fase intermédia do jogo, a representação poderá ser como a seguinte:
+
+	[ 
+		[ VV, VV, VV, VV, P2 ], 
+		[ VV, B3, P2, P1, P1 ], 
+	 	[ A3, A1, P1, B3, VV ], 
+	  	[ VV, P2, VV, B1, P1 ], 
+	  	[ P1, VV, VV, A3, VV ],
+	]	
+
+No final de jogo, com o jogador A vencedor, uma representação possivel será:
+
+	[ 
+		[ VV, VV, VV, VV, A3 ], 
+		[ VV, B3, A3, VV, P1 ], 
+	 	[ A3, VV, B2, B3, VV ], 
+	  	[ VV, B3, VV, VV, VV ], 
+	  	[ VV, VV, P1, A3, VV ],
+	]	
