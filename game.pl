@@ -41,10 +41,13 @@ piece(vv).
 % next piece on board when pawn carrying another piece
 next_piece(a1, p1, a2).
 next_piece(a2, p1, a3).
+next_piece(a1, p2, a3).
 next_piece(b1, p1, b2).
 next_piece(b2, p1, b3).
+next_piece(b1, p2, b3).
 next_piece(a1, vv, a1).
 next_piece(b1, vv, b1).
+
 
 % next piece on board when pawn not carrying another piece
 next_piece(a0, p1, a1).
@@ -96,6 +99,12 @@ remove_piece(b1, p2, p2).
 remove_piece(b1, a1, a1).
 remove_piece(b1, a2, a2).
 remove_piece(b1, a3, a3).
+
+
+% end game Counter
+inc_counter(a1, a3, Aux, Counter):- Counter is Aux+1 .
+inc_counter(b1, b3, Aux, Counter):- Counter is Aux+1 .
+inc_counter(_,_, Aux, Counter):- Counter is Aux.
 
 
 %print board
@@ -196,8 +205,30 @@ choose_move_player(Board, Player, XDest, YDest, Carry) :-
     read(YDest), skip_line.
 
 
+% end game checker
+end_game_aux_line([], Counter, Player).
+end_game_aux_line([P | Line], Counter, Player):-
+	inc_counter(Player, P, Counter, NewCounter),
+	end_game_aux_line(Line, NewCounter, Player).
+
+end_game_aux([], EndGame, Counter, Player):- EndGame is Counter.
+end_game_aux([Line| Tail], EndGame, Counter, Player):-
+	end_game_aux_line(Line, Counter, Player),
+	end_game_aux(Tail, EndGame, Counter, Player).
+
+end_game(Board, EndGame, Player):-
+	end_game_aux(Board, EndGame, 0, Player).
+
+
+
 % game auxiliar function, no init
-game_aux(Board, Player):-
+
+
+game_aux(Board, Player, 3):-
+	next_player(Player, NextPlayer),
+	write(NextPlayer), write(' won this game!'), nl.
+
+game_aux(Board, Player, EndGame):-
 	printBoard(Board),nl,nl,
 	write(Player) , write(' '), write('turn. '), nl,
 	choose_move_player(Board, Player, X, Y, Carry),
@@ -207,10 +238,13 @@ game_aux(Board, Player):-
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
 	write(FinalBoard),nl,
 	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
+
+	end_game(Board, EndGame_Aux, Player),
+
 	next_player(Player, NextPlayer),
-	game_aux(FinalBoard1, NextPlayer).
+	game_aux(FinalBoard1, NextPlayer, EndGame_Aux).
 
 % game function with init
 game(Board):-
 	initBoard(Board),
-	game_aux(Board, a1).
+	game_aux(Board, a1, 0).
