@@ -17,6 +17,17 @@ player(b1).
 next_player(a1, b1).
 next_player(b1, a1).
 
+carry(a1, a1, 1).
+carry(a0, a1, 1).
+carry(a0, a0, 0).
+carry(a1, a0, 0).
+
+carry(b1, b1, 1).
+carry(b0, b1, 1).
+carry(b0, b0, 0).
+carry(b1, b0, 0).
+
+
 piece(a1).
 piece(a2).
 piece(a3).
@@ -27,6 +38,7 @@ piece(p1).
 piece(p2).
 piece(vv).
 
+% next piece on board when pawn carrying another piece
 next_piece(a1, p1, a2).
 next_piece(a2, p1, a3).
 next_piece(b1, p1, b2).
@@ -34,28 +46,53 @@ next_piece(b2, p1, b3).
 next_piece(a1, vv, a1).
 next_piece(b1, vv, b1).
 
+% next piece on board when pawn not carrying another piece
+next_piece(a0, p1, a1).
+next_piece(a0, p2, a2).
+next_piece(b0, p1, b1).
+next_piece(b0, p2, b2).
+next_piece(a0, vv, a0).
+next_piece(b0, vv, b0).
 
+
+% remove pawn when not carrying a piece
+remove_piece(a0, a1, p1).
+remove_piece(a0, a2, p2).
+remove_piece(a0, a3, a3).
+remove_piece(a0, vv, vv).
+remove_piece(a0, p1, p1).
+remove_piece(a0, p2, p2).
+remove_piece(a0, b1, b1).
+remove_piece(a0, b2, b2).
+remove_piece(a0, b3, b3).
+
+remove_piece(b0, a1, a1).
+remove_piece(b0, a2, a2).
+remove_piece(b0, a3, a3).
+remove_piece(b0, vv, vv).
+remove_piece(b0, p1, p1).
+remove_piece(b0, p2, p2).
+remove_piece(b0, b1, p1).
+remove_piece(b0, b2, p2).
+remove_piece(b0, b3, b3).
+
+% remove pawn when carrying a piece
 remove_piece(a1, a1, vv).
-remove_piece(a1, a2, p1).
+remove_piece(a1, a2, p2).
 remove_piece(a1, a3, a3).
 remove_piece(a1, vv, vv).
 remove_piece(a1, p1, p1).
 remove_piece(a1, p2, p2).
-
 remove_piece(a1, b1, b1).
 remove_piece(a1, b2, b2).
 remove_piece(a1, b3, b3).
 
-
-
-
 remove_piece(b1, b1, vv).
-remove_piece(b1, b2, p1).
+remove_piece(b1, b2, p2).
 remove_piece(b1, b3, b3).
 remove_piece(b1, vv, vv).
 remove_piece(b1, p1, p1).
 remove_piece(b1, p2, p2).
-
 remove_piece(b1, a1, a1).
 remove_piece(b1, a2, a2).
 remove_piece(b1, a3, a3).
@@ -98,11 +135,6 @@ initBoard(Board):-
 replace([_|T], 0, X, [X|T]).
 replace([H|T], I, X, [H|R]):- I > -1, NI is I-1, replace(T, NI, X, R), !.
 replace(L, _, _, L).
-
-% check if position is valid
-checkPosition(Board, X, Y):-
-	nth0(X, Board, Line), nth0(Y, Line, Element),
-	(Element == vv ; Element == p1).
 
 
 % move line
@@ -154,28 +186,27 @@ remove_spawn([Line|Tail], BoardAux, FinalBoard, Player):-
 	append(BoardAux, [FinalLine], Aux),
 	remove_spawn(Tail, Aux, FinalBoard, Player).
 
-% return the value to insert at position where to move to
-nextPositionValue(Board, X, Y, Value, Pawn):-
-	nth0(X, Board, Line), nth0(Y, Line, Element),
-	(Element==vv -> Value is Pawn; P).
-
 % read from terminal position where to move to
-choose_move_player(Board, Player, XDest, YDest) :-
+choose_move_player(Board, Player, XDest, YDest, Carry) :-
+	write('Carry 1 piece? (1 - Yes / 0 - No) '),
+	read(Carry), skip_line,
     write('Move Dest Line (number): '),
     read(XDest), skip_line,
     write('Move Dest Column (letter): '),
-    read(YDest), skip_line,
-    checkPosition(Board, XDest, YDest).
+    read(YDest), skip_line.
 
 
 % game auxiliar function, no init
 game_aux(Board, Player):-
 	printBoard(Board),nl,nl,
 	write(Player) , write(' '), write('turn. '), nl,
-	choose_move_player(Board, Player, X, Y),
-	remove_spawn(Board, [], FinalBoard, Player),
+	choose_move_player(Board, Player, X, Y, Carry),
+	 % carry a piece with pawn or not
+	carry(Player, CarryPlayer, Carry),
+
+	remove_spawn(Board, [], FinalBoard, CarryPlayer),
 	write(FinalBoard),nl,
-	move(FinalBoard, X,Y, [], FinalBoard1, Player),
+	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
 	next_player(Player, NextPlayer),
 	game_aux(FinalBoard1, NextPlayer).
 
