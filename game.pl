@@ -206,25 +206,23 @@ choose_move_player(Board, Player, XDest, YDest, Carry) :-
 
 
 % end game checker
-end_game_aux_line([], Counter, Player).
-end_game_aux_line([P | Line], Counter, Player):-
-	inc_counter(Player, P, Counter, NewCounter),
-	end_game_aux_line(Line, NewCounter, Player).
+end_game_aux_line([], Aux, Counter, Player):- Counter is Aux.
+end_game_aux_line([P | Line], Aux, Counter, Player):-
+	inc_counter(Player, P, Aux, NewCounter),
+	end_game_aux_line(Line, NewCounter, Counter, Player).
 
-end_game_aux([], EndGame, Counter, Player):- EndGame is Counter.
+end_game_aux([], EndGame, Counter, Player):- write('Counter = '), write(Counter), nl, EndGame is Counter.
 end_game_aux([Line| Tail], EndGame, Counter, Player):-
-	end_game_aux_line(Line, Counter, Player),
-	end_game_aux(Tail, EndGame, Counter, Player).
+	end_game_aux_line(Line, Counter, NewCounter, Player),
+	end_game_aux(Tail, EndGame, NewCounter, Player).
 
 end_game(Board, EndGame, Player):-
 	end_game_aux(Board, EndGame, 0, Player).
 
 
 
-% game auxiliar function, no init
-
-
-game_aux(Board, Player, 3):-
+% game auxiliar function (no init board)
+game_aux(Board, Player, 1):-
 	next_player(Player, NextPlayer),
 	write(NextPlayer), write(' won this game!'), nl.
 
@@ -236,10 +234,11 @@ game_aux(Board, Player, EndGame):-
 	carry(Player, CarryPlayer, Carry),
 
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
-	write(FinalBoard),nl,
-	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
 
+	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
+	write('player = '), write(Player), nl, nl,
 	end_game(Board, EndGame_Aux, Player),
+	write('EndGame = '), write(EndGame_Aux), nl,
 
 	next_player(Player, NextPlayer),
 	game_aux(FinalBoard1, NextPlayer, EndGame_Aux).
