@@ -91,7 +91,7 @@ remove_piece(a1, b2, b2).
 remove_piece(a1, b3, b3).
 
 remove_piece(b1, b1, vv).
-remove_piece(b1, b2, p2).
+remove_piece(b1, b2, p1).
 remove_piece(b1, b3, b3).
 remove_piece(b1, vv, vv).
 remove_piece(b1, p1, p1).
@@ -101,10 +101,27 @@ remove_piece(b1, a2, a2).
 remove_piece(b1, a3, a3).
 
 
-% end game Counter
+% end game Counter - counts number of towers a player has
 inc_counter(a1, a3, Aux, Counter):- Counter is Aux+1 .
 inc_counter(b1, b3, Aux, Counter):- Counter is Aux+1 .
-inc_counter(_,_, Aux, Counter):- Counter is Aux.
+
+inc_counter(a1, vv, Aux, Counter):- Counter = Aux.
+inc_counter(a1, p1, Aux, Counter):- Counter = Aux.
+inc_counter(a1, p2, Aux, Counter):- Counter = Aux.
+inc_counter(a1, a1, Aux, Counter):- Counter = Aux.
+inc_counter(a1, a2, Aux, Counter):- Counter = Aux.
+inc_counter(a1, b1, Aux, Counter):- Counter = Aux.
+inc_counter(a1, b2, Aux, Counter):- Counter = Aux.
+inc_counter(a1, b3, Aux, Counter):- Counter = Aux.
+
+inc_counter(b1, vv, Aux, Counter):- Counter = Aux.
+inc_counter(b1, p1, Aux, Counter):- Counter = Aux.
+inc_counter(b1, p2, Aux, Counter):- Counter = Aux.
+inc_counter(b1, a1, Aux, Counter):- Counter = Aux.
+inc_counter(b1, a2, Aux, Counter):- Counter = Aux.
+inc_counter(b1, a3, Aux, Counter):- Counter = Aux.
+inc_counter(b1, b1, Aux, Counter):- Counter = Aux.
+inc_counter(b1, b2, Aux, Counter):- Counter = Aux.
 
 
 %print board
@@ -205,24 +222,21 @@ choose_move_player(Board, Player, XDest, YDest, Carry) :-
     read(YDest), skip_line.
 
 
-% end game checker
-end_game_aux_line([], Aux, Counter, Player):- Counter is Aux.
-end_game_aux_line([P | Line], Aux, Counter, Player):-
-	inc_counter(Player, P, Aux, NewCounter),
-	end_game_aux_line(Line, NewCounter, Counter, Player).
+% end game checker. end_game stores number of towers build by the player Player
+end_game_line([], Player, CounterAux, Counter):- Counter=CounterAux.
+end_game_line([P|Line], Player, CounterAux, Counter):-
+	inc_counter(Player, P, CounterAux, CounterFinalAux),
+	end_game_line(Line, Player, CounterFinalAux, Counter).
 
-end_game_aux([], EndGame, Counter, Player):- write('Counter = '), write(Counter), nl, EndGame is Counter.
-end_game_aux([Line| Tail], EndGame, Counter, Player):-
-	end_game_aux_line(Line, Counter, NewCounter, Player),
-	end_game_aux(Tail, EndGame, NewCounter, Player).
-
-end_game(Board, EndGame, Player):-
-	end_game_aux(Board, EndGame, 0, Player).
+end_game([], Player, CounterAux, FinalCounter):- FinalCounter = CounterAux.
+end_game([Line|Tail], Player, CounterAux, FinalCounter):-
+	end_game_line(Line, Player, CounterAux, CounterFinalAux),
+	end_game(Tail, Player, CounterFinalAux, FinalCounter).
 
 
 
 % game auxiliar function (no init board)
-game_aux(Board, Player, 1):-
+game_aux(Board, Player, 3):-
 	next_player(Player, NextPlayer),
 	write(NextPlayer), write(' won this game!'), nl.
 
@@ -233,15 +247,15 @@ game_aux(Board, Player, EndGame):-
 	 % carry a piece with pawn or not
 	carry(Player, CarryPlayer, Carry),
 
+	% remove player spawn and move to another position
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
-
 	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
-	write('player = '), write(Player), nl, nl,
-	end_game(Board, EndGame_Aux, Player),
-	write('EndGame = '), write(EndGame_Aux), nl,
+
+	% end game checker
+	end_game(FinalBoard1, Player, 0, TowerNumber),
 
 	next_player(Player, NextPlayer),
-	game_aux(FinalBoard1, NextPlayer, EndGame_Aux).
+	game_aux(FinalBoard1, NextPlayer, TowerNumber).
 
 % game function with init
 game(Board):-
