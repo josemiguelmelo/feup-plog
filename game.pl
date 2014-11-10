@@ -196,8 +196,8 @@ playerPosition(p2, b1, Found):- Found is 0.
 playerPosition(a3, b1, Found):- Found is 0.
 playerPosition(b0, b1, Found):- Found is 0.
 playerPosition(a1, b1, Found):- Found is 0.
-playerPosition(a1, b1, Found):- Found is 0.
-playerPosition(a1, b1, Found):- Found is 0.
+playerPosition(a2, b1, Found):- Found is 0.
+playerPosition(a3, b1, Found):- Found is 0.
 
 
 
@@ -356,5 +356,4 @@ game(Board):-
 	Option>=0, Option < 4,
 	initBoard(Board),
 	game_aux(Board, a1, 0, Option).
-
 
