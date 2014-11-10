@@ -316,14 +316,14 @@ checkMove(Board, X, Y, Player):-
 	currentPlayerPosition(Board, Player, CurrentX, CurrentY, 0, 0),
 	(CurrentX == X ; CurrentY == Y).
 
-
+game_aux(Board, Player, EndGame, 0).
 
 % game auxiliar function (no init board)
-game_aux(Board, Player, 3):-
+game_aux(Board, Player, 3, 1):-
 	next_player(Player, NextPlayer),
 	write(NextPlayer), write(' won this game!'), nl.
 
-game_aux(Board, Player, EndGame):-
+game_aux(Board, Player, EndGame, 1):-
 	printBoard(Board),nl,nl,
 	write(Player) , write(' '), write('turn. '), nl,
 	choose_move_player(Board, Player, X, Y, Carry),
@@ -338,9 +338,23 @@ game_aux(Board, Player, EndGame):-
 	end_game(FinalBoard1, Player, 0, TowerNumber),
 
 	next_player(Player, NextPlayer),
-	game_aux(FinalBoard1, NextPlayer, TowerNumber).
+	game_aux(FinalBoard1, NextPlayer, TowerNumber,1).
+
+
+main_menu(Option):-
+	repeat,
+	write('1) 1 vs 1'),nl,
+	write('2) 1 vs PC'),nl,
+	write('3) PC vs PC'),nl,
+	write('0) Exit'),nl,nl,
+	write('Option: '),
+	read(Option), skip_line.
 
 % game function with init
 game(Board):-
+	main_menu(Option),
+	Option>=0, Option < 4,
 	initBoard(Board),
-	game_aux(Board, a1, 0).
+	game_aux(Board, a1, 0, Option).
+
+
