@@ -165,13 +165,65 @@ elementAt_Line([P| Line], Y, Element):-
 
 elementAt([Line|Tail], 0, Y, Element):-
 	elementAt_Line(Line, Y, Element).
-
 elementAt([], X, Y, Element):-
 	Element is 0.
-
 elementAt([Line|Tail], X, Y, Element):-
 	Xaux is X-1,
 	elementAt(Tail, Xaux, Y, Element).
+
+
+% possible positions in board, used to determine player position in board
+playerPosition(a0, a1, Found):- Found is 1.
+playerPosition(a1, a1, Found):- Found is 1.
+playerPosition(a2, a1, Found):- Found is 1.
+
+playerPosition(b0, b1, Found):- Found is 1.
+playerPosition(b1, b1, Found):- Found is 1.
+playerPosition(b2, b1, Found):- Found is 1.
+
+playerPosition(vv, a1, Found):- Found is 0.
+playerPosition(p1, a1, Found):- Found is 0.
+playerPosition(p2, a1, Found):- Found is 0.
+playerPosition(a3, a1, Found):- Found is 0.
+playerPosition(b0, a1, Found):- Found is 0.
+playerPosition(b1, a1, Found):- Found is 0.
+playerPosition(b2, a1, Found):- Found is 0.
+playerPosition(b3, a1, Found):- Found is 0.
+
+playerPosition(vv, b1, Found):- Found is 0.
+playerPosition(p1, b1, Found):- Found is 0.
+playerPosition(p2, b1, Found):- Found is 0.
+playerPosition(a3, b1, Found):- Found is 0.
+playerPosition(b0, b1, Found):- Found is 0.
+playerPosition(a1, b1, Found):- Found is 0.
+playerPosition(a1, b1, Found):- Found is 0.
+playerPosition(a1, b1, Found):- Found is 0.
+
+
+
+
+
+currentPlayerPosition_Line([], Player, X, Y, CounterX, CounterY, 1):-
+	X is CounterX,
+	Y is CounterY-1.
+currentPlayerPosition_Line([], Player, X, Y, CounterX, CounterY, Found).
+currentPlayerPosition_Line([P|Tail], Player, X, Y, CounterX, CounterY, 1):-
+	X is CounterX,
+	Y is CounterY-1.
+currentPlayerPosition_Line([P|Tail], Player, X, Y, CounterX, CounterY, Found):-
+	playerPosition(P, Player, NewFound),
+	NewCounterY is CounterY+1,
+	currentPlayerPosition_Line(Tail, Player, X, Y, CounterX, NewCounterY, NewFound).
+
+% get current player Player position. uses currentPlayerPosition_Line as auxiliar function, to search the board line
+currentPlayerPosition([], Player, X, Y, CounterX, Found).
+currentPlayerPosition([Line|Tail], Player, X, Y, CounterX, 1).
+currentPlayerPosition([Line|Tail], Player, X, Y, CounterX, Found):-
+	currentPlayerPosition_Line(Line, Player, X, Y, CounterX, 0, Found),
+	NewCounterX is CounterX+1,
+	currentPlayerPosition(Tail, Player, X, Y, NewCounterX, Found).
+		
+
 
 
 % move pawns
@@ -254,11 +306,14 @@ end_game([Line|Tail], Player, CounterAux, FinalCounter):-
 	end_game(Tail, Player, CounterFinalAux, FinalCounter).
 
 
-
-checkMove(Board, X, Y):-
-	X >0 , X< 6, Y >0 , Y < 6,
+checkMove(Board, X, Y, Player):-
+	X >= 0 , X<6, Y >=0 , Y < 6,
 	elementAt(Board, X, Y, Element),
-	Element\=b1, Element\=b2, Element\=b0.
+	Element\=b1, Element\=b2, Element\=b0,
+	Element\=a0, Element\=a1, Element\=a2, 
+	currentPlayerPosition(Board, Player, CurrentX, CurrentY, 0, 0),
+	(CurrentX == X ; CurrentY == Y).
+
 
 
 % game auxiliar function (no init board)
@@ -272,7 +327,7 @@ game_aux(Board, Player, EndGame):-
 	choose_move_player(Board, Player, X, Y, Carry),
 	 % carry a piece with pawn or not
 	carry(Player, CarryPlayer, Carry),
-	checkMove(Board, X, Y),
+	checkMove(Board, X, Y, Player),
 	% remove player spawn and move to another position
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
 	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
