@@ -155,6 +155,25 @@ initBoard(Board):-
 	], Board).
 %-------------------------------------
 
+
+%element at position X, Y
+elementAt_Line([], Y, Element):- Element is 0.
+elementAt_Line([P|Line], 0, P).
+elementAt_Line([P| Line], Y, Element):-
+	Yaux is Y-1,
+	elementAt_Line(Line, Yaux, Element).
+
+elementAt([Line|Tail], 0, Y, Element):-
+	elementAt_Line(Line, Y, Element).
+
+elementAt([], X, Y, Element):-
+	Element is 0.
+
+elementAt([Line|Tail], X, Y, Element):-
+	Xaux is X-1,
+	elementAt(Tail, Xaux, Y, Element).
+
+
 % move pawns
 
 %replace value at position
@@ -214,6 +233,7 @@ remove_spawn([Line|Tail], BoardAux, FinalBoard, Player):-
 
 % read from terminal position where to move to
 choose_move_player(Board, Player, XDest, YDest, Carry) :-
+	repeat,
 	write('Carry 1 piece? (1 - Yes / 0 - No) '),
 	read(Carry), skip_line,
     write('Move Dest Line (number): '),
@@ -235,6 +255,12 @@ end_game([Line|Tail], Player, CounterAux, FinalCounter):-
 
 
 
+checkMove(Board, X, Y):-
+	X >0 , X< 6, Y >0 , Y < 6,
+	elementAt(Board, X, Y, Element),
+	Element\=b1, Element\=b2, Element\=b0.
+
+
 % game auxiliar function (no init board)
 game_aux(Board, Player, 3):-
 	next_player(Player, NextPlayer),
@@ -246,7 +272,7 @@ game_aux(Board, Player, EndGame):-
 	choose_move_player(Board, Player, X, Y, Carry),
 	 % carry a piece with pawn or not
 	carry(Player, CarryPlayer, Carry),
-
+	checkMove(Board, X, Y),
 	% remove player spawn and move to another position
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
 	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
