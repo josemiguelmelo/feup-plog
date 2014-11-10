@@ -309,8 +309,10 @@ end_game([Line|Tail], Player, CounterAux, FinalCounter):-
 checkMove(Board, X, Y, Player):-
 	X >= 0 , X<6, Y >=0 , Y < 6,
 	elementAt(Board, X, Y, Element),
+	% check if position is not occupied by opponent
 	Element\=b1, Element\=b2, Element\=b0,
 	Element\=a0, Element\=a1, Element\=a2, 
+	% check if it's not a diagonal movement
 	currentPlayerPosition(Board, Player, CurrentX, CurrentY, 0, 0),
 	(CurrentX == X ; CurrentY == Y).
 
