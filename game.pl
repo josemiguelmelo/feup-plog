@@ -194,6 +194,52 @@ not(X):- X, !, fail.
 not(X).
 
 
+
+availableMoves_hor(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
+	elementAt(Board, X, Y, Elem),
+	(Elem==vv; Elem==p1 ; Elem==p2),
+	CounterAux is Counter+1,
+	append(List, [[X, Y]], ListAux),
+	YAux is Y-1,
+	YAux >= -1,
+	availableMoves_hor(Board, Player, X, YAux, CounterAux, ListAux, FinalCounter, FinalList).
+availableMoves_hor(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
+	YAux is Y-1,
+	YAux >= -1,
+	availableMoves_hor(Board, Player, X, YAux, Counter, List, FinalCounter, FinalList).
+availableMoves_hor(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
+	FinalCounter is Counter,
+	append([], List, FinalList).
+
+
+
+availableMoves_ver(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
+	elementAt(Board, X, Y, Elem),
+	(Elem==vv; Elem==p1 ; Elem==p2),
+	CounterAux is Counter+1,
+	append(List, [[X, Y]], ListAux),
+	Xaux is X-1,
+	Xaux >= -1,
+	availableMoves_ver(Board, Player, Xaux, Y, CounterAux, ListAux,  FinalCounter, FinalList).
+availableMoves_ver(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
+	Xaux is X-1,
+	Xaux >= -1,
+	availableMoves_ver(Board, Player, Xaux, Y, Counter, List, FinalCounter, FinalList).
+availableMoves_ver(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
+	FinalCounter is Counter,
+	append([], List, FinalList).
+
+
+availableMoves(Board, Player, AvailMoves, MovesList):-
+	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
+	availableMoves_hor(Board, Player, CurrentX, 5, 0, [], FinalCounterHor, FinalListHor),
+	availableMoves_ver(Board, Player, 5, CurrentY, 0, [], FinalCounterVer, FinalListVer),
+	AvailMoves is FinalCounterHor + FinalCounterVer,
+	append(FinalListHor, FinalListVer, MovesList).
+
+
+
+
 % possible positions in board, used to determine player position in board
 elementPlayer(vv, vv).
 elementPlayer(p1, p1).
@@ -394,11 +440,18 @@ game_aux(Board, Player, EndGame, 0).
 game_aux(Board, Player, 2, 1):-
 	printBoard(Board),
 	next_player(Player, NextPlayer),
-	write(NextPlayer), write(' won this game!'), nl.
+	write(NextPlayer), write(' won this game!'), nl,
+	game(B).
 
 game_aux(Board, Player, EndGame, 1):-
 	printBoard(Board),nl,nl,
 	write(Player) , write(' '), write('turn. '), nl,
+
+	availableMoves(Board, Player,AvailMoves, MovesList),
+	
+	write('Possible Moves = '), write(AvailMoves), nl, 
+	write('List Moves :'),nl, write(MovesList),nl,nl,
+
 	choose_move_player(Board, Player, X, Y, Carry),
 	 % carry a piece with pawn or not
 	carry(Player, CarryPlayer, Carry),
@@ -417,7 +470,8 @@ game_aux(Board, Player, EndGame, 1):-
 
 game_aux(Board, Player, 2, 2):-
 	printBoard(Board),
-	write(Player), write(' won this game!'), nl.
+	write(Player), write(' won this game!'), nl,
+	game(B).
 
 game_aux(Board, Player, EndGame, 2):-
 	printBoard(Board),nl,nl,
@@ -427,11 +481,9 @@ game_aux(Board, Player, EndGame, 2):-
 	carry(Player, CarryPlayer, Carry),
 	% remove player spawn and move to another position
 
-	write('remove before'),nl,
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
-	write('before move'), nl,
+
 	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
-	write('end move'), nl,
 	% end game checker
 	end_game(FinalBoard1, Player, 0, TowerNumber),
 
@@ -451,7 +503,8 @@ game_aux(Board, Player, EndGame, 2):-
 game_aux(Board, Player, 2, 3):-
 	next_player(Player, NextPlayer),
 	printBoard(Board),
-	write(NextPlayer), write(' won this game!'), nl.
+	write(NextPlayer), write(' won this game!'), nl,
+	game(B).
 
 game_aux(Board, Player, EndGame, 3):-
 	read(IN),
