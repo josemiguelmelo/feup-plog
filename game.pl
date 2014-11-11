@@ -350,21 +350,15 @@ checkMove(Board, X, Y, Player, 1):-
 	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
 	(CurrentX == X ; CurrentY == Y),
 
-	write(CurrentX), write(' , '), write(CurrentY), nl,
-
     elementAt(Board, CurrentX, CurrentY, Elem),
     atom_chars(Elem, ElementList1),
-    write(Elem), nl,
-    write(ElementList1), nl,
 	not(compare(ElementList1, [a,'0'])),
 	not(compare(ElementList1, [a,'2'])),
 	not(compare(ElementList1, [a,'3'])),
 
 	not(compare(ElementList1, [b,'0'])),
 	not(compare(ElementList1, [b,'2'])),
-	not(compare(ElementList1, [b,'3'])),
-
-	write('passou'),nl.
+	not(compare(ElementList1, [b,'3'])).
 
 
 
@@ -455,38 +449,32 @@ game_aux(Board, Player, EndGame, 2):-
 
 % PC vs PC
 game_aux(Board, Player, 2, 3):-
+	next_player(Player, NextPlayer),
 	printBoard(Board),
-	write(Player), write(' won this game!'), nl.
+	write(NextPlayer), write(' won this game!'), nl.
 
 game_aux(Board, Player, EndGame, 3):-
+	read(IN),
 	printBoard(Board),nl,nl,
 	write(Player) , write(' '), write('turn. '), nl,
-	choose_move_player(Board, Player, X, Y, Carry),
-	 % carry a piece with pawn or not
-	carry(Player, CarryPlayer, Carry),
-	% remove player spawn and move to another position
 
-	write('remove before'),nl,
-	remove_spawn(Board, [], FinalBoard, CarryPlayer),
-	write('before move'), nl,
-	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
-	write('end move'), nl,
-	% end game checker
-
-	end_game(FinalBoard1, Player, 0, TowerNumber),
-
-
+	repeat,
+	pc_play(Board, Player, Board2),
+	end_game(Board2, Player, 0, TowerNumber),
 
 	next_player(Player, NextPlayer),
 
+	printBoard(Board2),nl,nl,
+	write(NextPlayer) , write(' '), write('turn. '), nl,
+	
 	% PC movement
 	repeat,
-	pc_play(FinalBoard1, NextPlayer, FinalBoard3),
+	pc_play(Board2, NextPlayer, Board3),
 
 	% change player
 	next_player(NextPlayer, NextPlayer2),
 
-	game_aux(FinalBoard3, NextPlayer2, TowerNumber,2).
+	game_aux(Board3, NextPlayer2, TowerNumber,3).
 
 
 main_menu(Option):-
