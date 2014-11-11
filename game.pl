@@ -1,3 +1,5 @@
+:-use_module(library(random)).
+
 % get element at position N
 nth0(0, [Head|_], Head) :- !.
 
@@ -27,10 +29,11 @@ carry(b0, b1, 1).
 carry(b0, b0, 0).
 carry(b1, b0, 0).
 
-
+piece(a0).
 piece(a1).
 piece(a2).
 piece(a3).
+piece(b0).
 piece(b1).
 piece(b2).
 piece(b3).
@@ -39,6 +42,9 @@ piece(p2).
 piece(vv).
 
 % next piece on board when pawn carrying another piece
+next_piece(a0, vv, a0).
+next_piece(b0, vv, b0).
+
 next_piece(a1, p1, a2).
 next_piece(a2, p1, a3).
 next_piece(a1, p2, a3).
@@ -52,58 +58,66 @@ next_piece(b1, vv, b1).
 % next piece on board when pawn not carrying another piece
 next_piece(a0, p1, a1).
 next_piece(a0, p2, a2).
+next_piece(a0, a4, a3).
+
 next_piece(b0, p1, b1).
 next_piece(b0, p2, b2).
-next_piece(a0, vv, a0).
-next_piece(b0, vv, b0).
+next_piece(b0, b4, b3).
+
 
 
 % remove pawn when not carrying a piece
 remove_piece(a0, a1, p1).
 remove_piece(a0, a2, p2).
-remove_piece(a0, a3, a3).
+remove_piece(a0, a3, a4).
 remove_piece(a0, vv, vv).
 remove_piece(a0, p1, p1).
 remove_piece(a0, p2, p2).
 remove_piece(a0, b1, b1).
 remove_piece(a0, b2, b2).
 remove_piece(a0, b3, b3).
+remove_piece(a0, b4, b4).
 
 remove_piece(b0, a1, a1).
 remove_piece(b0, a2, a2).
 remove_piece(b0, a3, a3).
+remove_piece(b0, a4, a4).
 remove_piece(b0, vv, vv).
 remove_piece(b0, p1, p1).
 remove_piece(b0, p2, p2).
 remove_piece(b0, b1, p1).
 remove_piece(b0, b2, p2).
-remove_piece(b0, b3, b3).
+remove_piece(b0, b3, b4).
 
 % remove pawn when carrying a piece
 remove_piece(a1, a1, vv).
 remove_piece(a1, a2, p2).
-remove_piece(a1, a3, a3).
+remove_piece(a1, a3, a4).
 remove_piece(a1, vv, vv).
 remove_piece(a1, p1, p1).
 remove_piece(a1, p2, p2).
 remove_piece(a1, b1, b1).
 remove_piece(a1, b2, b2).
 remove_piece(a1, b3, b3).
+remove_piece(a1, b4, b4).
 
 remove_piece(b1, b1, vv).
 remove_piece(b1, b2, p1).
-remove_piece(b1, b3, b3).
+remove_piece(b1, b3, b4).
 remove_piece(b1, vv, vv).
 remove_piece(b1, p1, p1).
 remove_piece(b1, p2, p2).
 remove_piece(b1, a1, a1).
 remove_piece(b1, a2, a2).
 remove_piece(b1, a3, a3).
+remove_piece(b1, a4, a4).
 
 
 % end game Counter - counts number of towers a player has
 inc_counter(a1, a3, Aux, Counter):- Counter is Aux+1 .
 inc_counter(b1, b3, Aux, Counter):- Counter is Aux+1 .
+inc_counter(a1, a4, Aux, Counter):- Counter is Aux+1 .
+inc_counter(b1, b4, Aux, Counter):- Counter is Aux+1 .
 
 inc_counter(a1, vv, Aux, Counter):- Counter = Aux.
 inc_counter(a1, p1, Aux, Counter):- Counter = Aux.
@@ -113,6 +127,7 @@ inc_counter(a1, a2, Aux, Counter):- Counter = Aux.
 inc_counter(a1, b1, Aux, Counter):- Counter = Aux.
 inc_counter(a1, b2, Aux, Counter):- Counter = Aux.
 inc_counter(a1, b3, Aux, Counter):- Counter = Aux.
+inc_counter(a1, b4, Aux, Counter):- Counter = Aux.
 
 inc_counter(b1, vv, Aux, Counter):- Counter = Aux.
 inc_counter(b1, p1, Aux, Counter):- Counter = Aux.
@@ -120,6 +135,7 @@ inc_counter(b1, p2, Aux, Counter):- Counter = Aux.
 inc_counter(b1, a1, Aux, Counter):- Counter = Aux.
 inc_counter(b1, a2, Aux, Counter):- Counter = Aux.
 inc_counter(b1, a3, Aux, Counter):- Counter = Aux.
+inc_counter(b1, a4, Aux, Counter):- Counter = Aux.
 inc_counter(b1, b1, Aux, Counter):- Counter = Aux.
 inc_counter(b1, b2, Aux, Counter):- Counter = Aux.
 
@@ -175,56 +191,38 @@ not(X).
 
 
 % possible positions in board, used to determine player position in board
-playerPosition(a0, a1, Found):- Found is 1.
-playerPosition(a1, a1, Found):- Found is 1.
-playerPosition(a2, a1, Found):- Found is 1.
+elementPlayer(vv, vv).
+elementPlayer(p1, p1).
+elementPlayer(p2, p2).
+elementPlayer(a0, a1).
+elementPlayer(a1, a1).
+elementPlayer(a2, a1).
+elementPlayer(a3, a1).
+elementPlayer(a4, a4).
+elementPlayer(b0, b1).
+elementPlayer(b1, b1).
+elementPlayer(b2, b1).
+elementPlayer(b3, b3).
 
-playerPosition(b0, b1, Found):- Found is 1.
-playerPosition(b1, b1, Found):- Found is 1.
-playerPosition(b2, b1, Found):- Found is 1.
+currentPlayerPosition_Line(Board, Player, CounterX, CounterY, X, Y):-
+	elementAt(Board, CounterX, CounterY, Element),
+	elementPlayer(Element, P),
+	P = Player,
+	X is CounterX, Y is CounterY.
 
-playerPosition(vv, a1, Found):- Found is 0.
-playerPosition(p1, a1, Found):- Found is 0.
-playerPosition(p2, a1, Found):- Found is 0.
-playerPosition(a3, a1, Found):- Found is 0.
-playerPosition(b0, a1, Found):- Found is 0.
-playerPosition(b1, a1, Found):- Found is 0.
-playerPosition(b2, a1, Found):- Found is 0.
-playerPosition(b3, a1, Found):- Found is 0.
-
-playerPosition(vv, b1, Found):- Found is 0.
-playerPosition(p1, b1, Found):- Found is 0.
-playerPosition(p2, b1, Found):- Found is 0.
-playerPosition(a3, b1, Found):- Found is 0.
-playerPosition(b0, b1, Found):- Found is 0.
-playerPosition(a1, b1, Found):- Found is 0.
-playerPosition(a2, b1, Found):- Found is 0.
-playerPosition(a3, b1, Found):- Found is 0.
-
-
-
-
-
-currentPlayerPosition_Line([], Player, X, Y, CounterX, CounterY, 1):-
-	X is CounterX,
-	Y is CounterY-1.
-currentPlayerPosition_Line([], Player, X, Y, CounterX, CounterY, Found).
-currentPlayerPosition_Line([P|Tail], Player, X, Y, CounterX, CounterY, 1):-
-	X is CounterX,
-	Y is CounterY-1.
-currentPlayerPosition_Line([P|Tail], Player, X, Y, CounterX, CounterY, Found):-
-	playerPosition(P, Player, NewFound),
+currentPlayerPosition(Board, Player, CounterX, CounterY, X, Y):-
+	currentPlayerPosition_Line(Board, Player, CounterX, CounterY, X, Y), !.
+currentPlayerPosition(Board, Player, CounterX, CounterY, X, Y):-
 	NewCounterY is CounterY+1,
-	currentPlayerPosition_Line(Tail, Player, X, Y, CounterX, NewCounterY, NewFound).
-
-% get current player Player position. uses currentPlayerPosition_Line as auxiliar function, to search the board line
-currentPlayerPosition([], Player, X, Y, CounterX, Found).
-currentPlayerPosition([Line|Tail], Player, X, Y, CounterX, 1).
-currentPlayerPosition([Line|Tail], Player, X, Y, CounterX, Found):-
-	currentPlayerPosition_Line(Line, Player, X, Y, CounterX, 0, Found),
+	NewCounterY < 5,
+	currentPlayerPosition(Board, Player, CounterX, NewCounterY, X, Y), !.
+currentPlayerPosition(Board, Player, CounterX, CounterY, X, Y):-
 	NewCounterX is CounterX+1,
-	currentPlayerPosition(Tail, Player, X, Y, NewCounterX, Found).
-		
+	NewCounterX < 5,
+	NewCounterY is 0,
+	currentPlayerPosition(Board, Player, NewCounterX, NewCounterY, X, Y) , !.
+currentPlayerPosition(Board, Player, CounterX, CounterY, X, Y):-
+	!,fail.
 
 
 
@@ -241,7 +239,7 @@ move_line([], Y, BoardAux, Player, FinalAux):-
 	append( BoardAux, [], FinalAux).
 
 move_line([P|Line], 0, BoardAux, Player, FinalAux):-
-	next_piece(Player, P , NextPiece),
+	next_piece(Player, P, NextPiece),
 	append(BoardAux, [NextPiece], Aux),
 	Yaux is -1,
 	move_line(Line, Yaux, Aux, Player, FinalAux).
@@ -288,12 +286,13 @@ remove_spawn([Line|Tail], BoardAux, FinalBoard, Player):-
 % read from terminal position where to move to
 choose_move_player(Board, Player, XDest, YDest, Carry) :-
 	repeat,
-	write('Carry 1 piece? (1 - Yes / 0 - No) '),
-	read(Carry), skip_line,
     write('Move Dest Line (number): '),
     read(XDest), skip_line,
-    write('Move Dest Column (letter): '),
+    write('Move Dest Column (number): '),
     read(YDest), skip_line,
+
+    write('Carry 1 piece? (1 - Yes / 0 - No) '),
+	read(Carry), skip_line,
 	checkMove(Board, XDest, YDest, Player).
 
 
@@ -305,6 +304,7 @@ end_game_line([P|Line], Player, CounterAux, Counter):-
 
 end_game([], Player, CounterAux, FinalCounter):- FinalCounter = CounterAux.
 end_game([Line|Tail], Player, CounterAux, FinalCounter):-
+	write('here'),
 	end_game_line(Line, Player, CounterAux, CounterFinalAux),
 	end_game(Tail, Player, CounterFinalAux, FinalCounter).
 
@@ -319,7 +319,7 @@ checkMove(Board, X, Y, Player):-
 	X >= 0 , X<5, Y >=0 , Y < 5,
 	elementAt(Board, X, Y, Element),
 	% check if position is not occupied by opponent
-
+	write('passa nos limites do Xy'), nl,
 	atom_chars(Element, ElementList),
 	not(compare(ElementList, [a,'0'])),
 	not(compare(ElementList, [a,'1'])),
@@ -328,8 +328,10 @@ checkMove(Board, X, Y, Player):-
 	not(compare(ElementList, [b,'1'])),
 	not(compare(ElementList, [b,'2'])),
 
+	write('passa nos checks'), nl,
 	% check if it's not a diagonal movement
-	currentPlayerPosition(Board, Player, CurrentX, CurrentY, 0, 0),
+
+	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
 	(CurrentX == X ; CurrentY == Y).
 
 game_aux(Board, Player, EndGame, 0).
@@ -338,7 +340,7 @@ game_aux(Board, Player, EndGame, 0).
 
 
 
-game_aux(Board, Player, 3, 1):-
+game_aux(Board, Player, 1, 1):-
 	next_player(Player, NextPlayer),
 	write(NextPlayer), write(' won this game!'), nl.
 
@@ -355,7 +357,6 @@ game_aux(Board, Player, EndGame, 1):-
 
 	% end game checker
 	end_game(FinalBoard1, Player, 0, TowerNumber),
-
 	next_player(Player, NextPlayer),
 	game_aux(FinalBoard1, NextPlayer, TowerNumber,1).
 
@@ -364,16 +365,33 @@ game_aux(Board, Player, EndGame, 1):-
 	% game mode = 2 -> 1vsPC
 
 
-move_pc(FinalBoard2, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 1):-
-	move(FinalBoard2, CurrentX, Position, [], FinalBoard3, CarryPlayer1).
+move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 1):-
+	checkMove(FinalBoard2, CurrentX, Position, Player),
+
+	remove_spawn(FinalBoard2, [], Board2, CarryPlayer1),
+	move(Board2, CurrentX, Position, [], FinalBoard3, CarryPlayer1).
 	
-move_pc(FinalBoard2, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 0):-
-	move(FinalBoard2, Position, CurrentY, [], FinalBoard3, CarryPlayer1).
+move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 0):-
+	checkMove(FinalBoard2, Position, CurrentY, Player),
+	
+	remove_spawn(FinalBoard2, [], Board2, CarryPlayer1),
+
+	move(Board2, Position, CurrentY, [], FinalBoard3, CarryPlayer1).
+
+
+pc_play(Board, Player, FinalBoard):-	
+	random(0, 2, Horizontal),
+	random(0, 2, Carry),
+	random(0, 5, Position),
+	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
+	carry(Player, CarryPlayer, Carry),
+	move_pc(Board, Player, CurrentX, CurrentY, Position, FinalBoard, CarryPlayer, Horizontal).
 
 
 
-game_aux(Board, Player, 3, 2):-
-	next_player(Player, NextPlayer),
+
+
+game_aux(Board, Player, 1, 2):-
 	write(NextPlayer), write(' won this game!'), nl.
 
 game_aux(Board, Player, EndGame, 2):-
@@ -382,8 +400,8 @@ game_aux(Board, Player, EndGame, 2):-
 	choose_move_player(Board, Player, X, Y, Carry),
 	 % carry a piece with pawn or not
 	carry(Player, CarryPlayer, Carry),
-	checkMove(Board, X, Y, Player),
 	% remove player spawn and move to another position
+
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
 	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
 
@@ -392,17 +410,11 @@ game_aux(Board, Player, EndGame, 2):-
 
 	next_player(Player, NextPlayer),
 
-	% PC movement	
-	random(0, 2, Horizontal),
-	random(0, 2, Carry1),
-	random(0, 6, Position),
+	% PC movement
+	repeat,
+	pc_play(FinalBoard1, NextPlayer, FinalBoard3),
 
-	currentPlayerPosition(FinalBoard1, NextPlayer, CurrentX, CurrentY, 0, 0),
-	carry(NextPlayer, CarryPlayer1, Carry1),
-	remove_spawn(FinalBoard1, [], FinalBoard2, CarryPlayer1),
-
-	move_pc(FinalBoard2, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, Horizontal),
-
+	% change player
 	next_player(NextPlayer, NextPlayer2),
 
 	game_aux(FinalBoard3, NextPlayer2, TowerNumber,2).
