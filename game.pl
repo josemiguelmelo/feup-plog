@@ -391,10 +391,10 @@ game_aux(Board, Player, EndGame, 0).
 
 % 1 vs 1
 
-game_aux(Board, Player, 1, 1):-
+game_aux(Board, Player, 2, 1):-
 	printBoard(Board),
 	next_player(Player, NextPlayer),
-	write(Player), write(' won this game!'), nl.
+	write(NextPlayer), write(' won this game!'), nl.
 
 game_aux(Board, Player, EndGame, 1):-
 	printBoard(Board),nl,nl,
@@ -466,7 +466,7 @@ game_aux(Board, Player, EndGame, 3):-
 
 	printBoard(Board2),nl,nl,
 	write(NextPlayer) , write(' '), write('turn. '), nl,
-	
+
 	% PC movement
 	repeat,
 	pc_play(Board2, NextPlayer, Board3),
