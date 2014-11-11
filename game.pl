@@ -157,7 +157,7 @@ initBoard(Board):-
 
 
 %element at position X, Y
-elementAt_Line([], Y, Element):- Element is 0.
+elementAt_Line([], Y, Element):- fail.
 elementAt_Line([P|Line], 0, P).
 elementAt_Line([P| Line], Y, Element):-
 	Yaux is Y-1,
@@ -165,11 +165,13 @@ elementAt_Line([P| Line], Y, Element):-
 
 elementAt([Line|Tail], 0, Y, Element):-
 	elementAt_Line(Line, Y, Element).
-elementAt([], X, Y, Element):-
-	Element is 0.
+elementAt([], X, Y, Element):- fail.
 elementAt([Line|Tail], X, Y, Element):-
 	Xaux is X-1,
 	elementAt(Tail, Xaux, Y, Element).
+
+not(X):- X, !, fail.
+not(X).
 
 
 % possible positions in board, used to determine player position in board
@@ -291,7 +293,8 @@ choose_move_player(Board, Player, XDest, YDest, Carry) :-
     write('Move Dest Line (number): '),
     read(XDest), skip_line,
     write('Move Dest Column (letter): '),
-    read(YDest), skip_line.
+    read(YDest), skip_line,
+	checkMove(Board, XDest, YDest, Player).
 
 
 % end game checker. end_game stores number of towers build by the player Player
@@ -305,13 +308,26 @@ end_game([Line|Tail], Player, CounterAux, FinalCounter):-
 	end_game_line(Line, Player, CounterAux, CounterFinalAux),
 	end_game(Tail, Player, CounterFinalAux, FinalCounter).
 
+%compare lists
+compare([],_).
+compare([A1|Tail1], [A2|Tail2]):-
+	A1 = A2,
+	compare(Tail1, Tail2).
+
 
 checkMove(Board, X, Y, Player):-
-	X >= 0 , X<6, Y >=0 , Y < 6,
+	X >= 0 , X<5, Y >=0 , Y < 5,
 	elementAt(Board, X, Y, Element),
 	% check if position is not occupied by opponent
-	Element\=b1, Element\=b2, Element\=b0,
-	Element\=a0, Element\=a1, Element\=a2, 
+
+	atom_chars(Element, ElementList),
+	not(compare(ElementList, [a,'0'])),
+	not(compare(ElementList, [a,'1'])),
+	not(compare(ElementList, [a,'2'])),
+	not(compare(ElementList, [b,'0'])),
+	not(compare(ElementList, [b,'1'])),
+	not(compare(ElementList, [b,'2'])),
+
 	% check if it's not a diagonal movement
 	currentPlayerPosition(Board, Player, CurrentX, CurrentY, 0, 0),
 	(CurrentX == X ; CurrentY == Y).
@@ -319,11 +335,48 @@ checkMove(Board, X, Y, Player):-
 game_aux(Board, Player, EndGame, 0).
 
 % game auxiliar function (no init board)
+
+
+
 game_aux(Board, Player, 3, 1):-
 	next_player(Player, NextPlayer),
 	write(NextPlayer), write(' won this game!'), nl.
 
 game_aux(Board, Player, EndGame, 1):-
+	printBoard(Board),nl,nl,
+	write(Player) , write(' '), write('turn. '), nl,
+	choose_move_player(Board, Player, X, Y, Carry),
+	 % carry a piece with pawn or not
+	carry(Player, CarryPlayer, Carry),
+
+	% remove player spawn and move to another position
+	remove_spawn(Board, [], FinalBoard, CarryPlayer),
+	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
+
+	% end game checker
+	end_game(FinalBoard1, Player, 0, TowerNumber),
+
+	next_player(Player, NextPlayer),
+	game_aux(FinalBoard1, NextPlayer, TowerNumber,1).
+
+
+
+	% game mode = 2 -> 1vsPC
+
+
+move_pc(FinalBoard2, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 1):-
+	move(FinalBoard2, CurrentX, Position, [], FinalBoard3, CarryPlayer1).
+	
+move_pc(FinalBoard2, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 0):-
+	move(FinalBoard2, Position, CurrentY, [], FinalBoard3, CarryPlayer1).
+
+
+
+game_aux(Board, Player, 3, 2):-
+	next_player(Player, NextPlayer),
+	write(NextPlayer), write(' won this game!'), nl.
+
+game_aux(Board, Player, EndGame, 2):-
 	printBoard(Board),nl,nl,
 	write(Player) , write(' '), write('turn. '), nl,
 	choose_move_player(Board, Player, X, Y, Carry),
@@ -338,7 +391,22 @@ game_aux(Board, Player, EndGame, 1):-
 	end_game(FinalBoard1, Player, 0, TowerNumber),
 
 	next_player(Player, NextPlayer),
-	game_aux(FinalBoard1, NextPlayer, TowerNumber,1).
+
+	% PC movement	
+	random(0, 2, Horizontal),
+	random(0, 2, Carry1),
+	random(0, 6, Position),
+
+	currentPlayerPosition(FinalBoard1, NextPlayer, CurrentX, CurrentY, 0, 0),
+	carry(NextPlayer, CarryPlayer1, Carry1),
+	remove_spawn(FinalBoard1, [], FinalBoard2, CarryPlayer1),
+
+	move_pc(FinalBoard2, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, Horizontal),
+
+	next_player(NextPlayer, NextPlayer2),
+
+	game_aux(FinalBoard3, NextPlayer2, TowerNumber,2).
+
 
 
 main_menu(Option):-
