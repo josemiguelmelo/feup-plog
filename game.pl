@@ -366,36 +366,6 @@ checkMove(Board, X, Y, Player, 1):-
 
 	write('passou'),nl.
 
-game_aux(Board, Player, EndGame, 0).
-
-% game auxiliar function (no init board)
-
-
-
-game_aux(Board, Player, 1, 1):-
-	printBoard(Board),
-	next_player(Player, NextPlayer),
-	write(Player), write(' won this game!'), nl.
-
-game_aux(Board, Player, EndGame, 1):-
-	printBoard(Board),nl,nl,
-	write(Player) , write(' '), write('turn. '), nl,
-	choose_move_player(Board, Player, X, Y, Carry),
-	 % carry a piece with pawn or not
-	carry(Player, CarryPlayer, Carry),
-
-	% remove player spawn and move to another position
-	remove_spawn(Board, [], FinalBoard, CarryPlayer),
-	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
-
-	% end game checker
-	end_game(FinalBoard1, Player, 0, TowerNumber),
-	next_player(Player, NextPlayer),
-	game_aux(FinalBoard1, NextPlayer, TowerNumber,1).
-
-
-
-	% game mode = 2 -> 1vsPC
 
 
 move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, Carry, 1):-
@@ -421,8 +391,35 @@ pc_play(Board, Player, FinalBoard):-
 	move_pc(Board, Player, CurrentX, CurrentY, Position, FinalBoard, CarryPlayer, Carry, Horizontal).
 
 
+% exit Option
+
+game_aux(Board, Player, EndGame, 0).
+
+% 1 vs 1
+
+game_aux(Board, Player, 1, 1):-
+	printBoard(Board),
+	next_player(Player, NextPlayer),
+	write(Player), write(' won this game!'), nl.
+
+game_aux(Board, Player, EndGame, 1):-
+	printBoard(Board),nl,nl,
+	write(Player) , write(' '), write('turn. '), nl,
+	choose_move_player(Board, Player, X, Y, Carry),
+	 % carry a piece with pawn or not
+	carry(Player, CarryPlayer, Carry),
+
+	% remove player spawn and move to another position
+	remove_spawn(Board, [], FinalBoard, CarryPlayer),
+	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
+
+	% end game checker
+	end_game(FinalBoard1, Player, 0, TowerNumber),
+	next_player(Player, NextPlayer),
+	game_aux(FinalBoard1, NextPlayer, TowerNumber,1).
 
 
+% 1 vs PC
 
 game_aux(Board, Player, 2, 2):-
 	printBoard(Board),
@@ -455,6 +452,41 @@ game_aux(Board, Player, EndGame, 2):-
 
 	game_aux(FinalBoard3, NextPlayer2, TowerNumber,2).
 
+
+% PC vs PC
+game_aux(Board, Player, 2, 3):-
+	printBoard(Board),
+	write(Player), write(' won this game!'), nl.
+
+game_aux(Board, Player, EndGame, 3):-
+	printBoard(Board),nl,nl,
+	write(Player) , write(' '), write('turn. '), nl,
+	choose_move_player(Board, Player, X, Y, Carry),
+	 % carry a piece with pawn or not
+	carry(Player, CarryPlayer, Carry),
+	% remove player spawn and move to another position
+
+	write('remove before'),nl,
+	remove_spawn(Board, [], FinalBoard, CarryPlayer),
+	write('before move'), nl,
+	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
+	write('end move'), nl,
+	% end game checker
+
+	end_game(FinalBoard1, Player, 0, TowerNumber),
+
+
+
+	next_player(Player, NextPlayer),
+
+	% PC movement
+	repeat,
+	pc_play(FinalBoard1, NextPlayer, FinalBoard3),
+
+	% change player
+	next_player(NextPlayer, NextPlayer2),
+
+	game_aux(FinalBoard3, NextPlayer2, TowerNumber,2).
 
 
 main_menu(Option):-
