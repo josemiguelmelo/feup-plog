@@ -70,6 +70,7 @@ next_piece(b0, b4, b3).
 remove_piece(a0, a1, p1).
 remove_piece(a0, a2, p2).
 remove_piece(a0, a3, a4).
+remove_piece(a0, a4, a4).
 remove_piece(a0, vv, vv).
 remove_piece(a0, p1, p1).
 remove_piece(a0, p2, p2).
@@ -88,11 +89,13 @@ remove_piece(b0, p2, p2).
 remove_piece(b0, b1, p1).
 remove_piece(b0, b2, p2).
 remove_piece(b0, b3, b4).
+remove_piece(b0, b4, b4).
 
 % remove pawn when carrying a piece
 remove_piece(a1, a1, vv).
 remove_piece(a1, a2, p2).
 remove_piece(a1, a3, a4).
+remove_piece(a1, a4, a4).
 remove_piece(a1, vv, vv).
 remove_piece(a1, p1, p1).
 remove_piece(a1, p2, p2).
@@ -104,6 +107,7 @@ remove_piece(a1, b4, b4).
 remove_piece(b1, b1, vv).
 remove_piece(b1, b2, p1).
 remove_piece(b1, b3, b4).
+remove_piece(b1, b4, b4).
 remove_piece(b1, vv, vv).
 remove_piece(b1, p1, p1).
 remove_piece(b1, p2, p2).
@@ -202,7 +206,8 @@ elementPlayer(a4, a4).
 elementPlayer(b0, b1).
 elementPlayer(b1, b1).
 elementPlayer(b2, b1).
-elementPlayer(b3, b3).
+elementPlayer(b3, b1).
+elementPlayer(b4, b4).
 
 currentPlayerPosition_Line(Board, Player, CounterX, CounterY, X, Y):-
 	elementAt(Board, CounterX, CounterY, Element),
@@ -290,10 +295,9 @@ choose_move_player(Board, Player, XDest, YDest, Carry) :-
     read(XDest), skip_line,
     write('Move Dest Column (number): '),
     read(YDest), skip_line,
-
     write('Carry 1 piece? (1 - Yes / 0 - No) '),
 	read(Carry), skip_line,
-	checkMove(Board, XDest, YDest, Player).
+	checkMove(Board, XDest, YDest, Player, Carry).
 
 
 % end game checker. end_game stores number of towers build by the player Player
@@ -304,7 +308,6 @@ end_game_line([P|Line], Player, CounterAux, Counter):-
 
 end_game([], Player, CounterAux, FinalCounter):- FinalCounter = CounterAux.
 end_game([Line|Tail], Player, CounterAux, FinalCounter):-
-	write('here'),
 	end_game_line(Line, Player, CounterAux, CounterFinalAux),
 	end_game(Tail, Player, CounterFinalAux, FinalCounter).
 
@@ -314,12 +317,10 @@ compare([A1|Tail1], [A2|Tail2]):-
 	A1 = A2,
 	compare(Tail1, Tail2).
 
-
-checkMove(Board, X, Y, Player):-
+checkMove(Board, X, Y, Player, 0):-
 	X >= 0 , X<5, Y >=0 , Y < 5,
 	elementAt(Board, X, Y, Element),
 	% check if position is not occupied by opponent
-	write('passa nos limites do Xy'), nl,
 	atom_chars(Element, ElementList),
 	not(compare(ElementList, [a,'0'])),
 	not(compare(ElementList, [a,'1'])),
@@ -328,11 +329,42 @@ checkMove(Board, X, Y, Player):-
 	not(compare(ElementList, [b,'1'])),
 	not(compare(ElementList, [b,'2'])),
 
-	write('passa nos checks'), nl,
+	% check if it's not a diagonal movement
+	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
+	(CurrentX == X ; CurrentY == Y).
+
+checkMove(Board, X, Y, Player, 1):-
+	X >= 0 , X<5, Y >=0 , Y < 5,
+	elementAt(Board, X, Y, Element),
+	% check if position is not occupied by opponent
+	atom_chars(Element, ElementList),
+	not(compare(ElementList, [a,'0'])),
+	not(compare(ElementList, [a,'1'])),
+	not(compare(ElementList, [a,'2'])),
+	not(compare(ElementList, [b,'0'])),
+	not(compare(ElementList, [b,'1'])),
+	not(compare(ElementList, [b,'2'])),
+
 	% check if it's not a diagonal movement
 
 	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
-	(CurrentX == X ; CurrentY == Y).
+	(CurrentX == X ; CurrentY == Y),
+
+	write(CurrentX), write(' , '), write(CurrentY), nl,
+
+    elementAt(Board, CurrentX, CurrentY, Elem),
+    atom_chars(Elem, ElementList1),
+    write(Elem), nl,
+    write(ElementList1), nl,
+	not(compare(ElementList1, [a,'0'])),
+	not(compare(ElementList1, [a,'2'])),
+	not(compare(ElementList1, [a,'3'])),
+
+	not(compare(ElementList1, [b,'0'])),
+	not(compare(ElementList1, [b,'2'])),
+	not(compare(ElementList1, [b,'3'])),
+
+	write('passou'),nl.
 
 game_aux(Board, Player, EndGame, 0).
 
@@ -341,8 +373,9 @@ game_aux(Board, Player, EndGame, 0).
 
 
 game_aux(Board, Player, 1, 1):-
+	printBoard(Board),
 	next_player(Player, NextPlayer),
-	write(NextPlayer), write(' won this game!'), nl.
+	write(Player), write(' won this game!'), nl.
 
 game_aux(Board, Player, EndGame, 1):-
 	printBoard(Board),nl,nl,
@@ -365,14 +398,14 @@ game_aux(Board, Player, EndGame, 1):-
 	% game mode = 2 -> 1vsPC
 
 
-move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 1):-
-	checkMove(FinalBoard2, CurrentX, Position, Player),
+move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, Carry, 1):-
+	checkMove(FinalBoard2, CurrentX, Position, Player, Carry),
 
 	remove_spawn(FinalBoard2, [], Board2, CarryPlayer1),
 	move(Board2, CurrentX, Position, [], FinalBoard3, CarryPlayer1).
 	
-move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, 0):-
-	checkMove(FinalBoard2, Position, CurrentY, Player),
+move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, Carry, 0):-
+	checkMove(FinalBoard2, Position, CurrentY, Player, Carry),
 	
 	remove_spawn(FinalBoard2, [], Board2, CarryPlayer1),
 
@@ -385,14 +418,15 @@ pc_play(Board, Player, FinalBoard):-
 	random(0, 5, Position),
 	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
 	carry(Player, CarryPlayer, Carry),
-	move_pc(Board, Player, CurrentX, CurrentY, Position, FinalBoard, CarryPlayer, Horizontal).
+	move_pc(Board, Player, CurrentX, CurrentY, Position, FinalBoard, CarryPlayer, Carry, Horizontal).
 
 
 
 
 
-game_aux(Board, Player, 1, 2):-
-	write(NextPlayer), write(' won this game!'), nl.
+game_aux(Board, Player, 2, 2):-
+	printBoard(Board),
+	write(Player), write(' won this game!'), nl.
 
 game_aux(Board, Player, EndGame, 2):-
 	printBoard(Board),nl,nl,
@@ -402,9 +436,11 @@ game_aux(Board, Player, EndGame, 2):-
 	carry(Player, CarryPlayer, Carry),
 	% remove player spawn and move to another position
 
+	write('remove before'),nl,
 	remove_spawn(Board, [], FinalBoard, CarryPlayer),
+	write('before move'), nl,
 	move(FinalBoard, X,Y, [], FinalBoard1, CarryPlayer),
-
+	write('end move'), nl,
 	% end game checker
 	end_game(FinalBoard1, Player, 0, TowerNumber),
 
