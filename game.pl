@@ -190,11 +190,14 @@ elementAt([Line|Tail], X, Y, Element):-
 	Xaux is X-1,
 	elementAt(Tail, Xaux, Y, Element).
 
+% not predicate
 not(X):- X, !, fail.
 not(X).
 
 
 
+
+% get list and number of current availables moves
 availableMoves_hor(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
 	elementAt(Board, X, Y, Elem),
 	(Elem==vv; Elem==p1 ; Elem==p2),
@@ -255,6 +258,7 @@ elementPlayer(b2, b1).
 elementPlayer(b3, b1).
 elementPlayer(b4, b4).
 
+% get player current position in board
 currentPlayerPosition_Line(Board, Player, CounterX, CounterY, X, Y):-
 	elementAt(Board, CounterX, CounterY, Element),
 	elementPlayer(Element, P),
@@ -363,6 +367,7 @@ compare([A1|Tail1], [A2|Tail2]):-
 	A1 = A2,
 	compare(Tail1, Tail2).
 
+% check if move to position X,Y is possible
 checkMove(Board, X, Y, Player, 0):-
 	X >= 0 , X<5, Y >=0 , Y < 5,
 	elementAt(Board, X, Y, Element),
@@ -408,6 +413,7 @@ checkMove(Board, X, Y, Player, 1):-
 
 
 
+% automatic move (used by computer)
 move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, Carry, 1):-
 	checkMove(FinalBoard2, CurrentX, Position, Player, Carry),
 
@@ -429,6 +435,8 @@ pc_play(Board, Player, FinalBoard):-
 	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
 	carry(Player, CarryPlayer, Carry),
 	move_pc(Board, Player, CurrentX, CurrentY, Position, FinalBoard, CarryPlayer, Carry, Horizontal).
+
+
 
 
 % exit Option
@@ -530,6 +538,7 @@ game_aux(Board, Player, EndGame, 3):-
 	game_aux(Board3, NextPlayer2, TowerNumber,3).
 
 
+% main menu function
 main_menu(Option):-
 	repeat,
 	write('1) 1 vs 1'),nl,
