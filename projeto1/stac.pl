@@ -13,12 +13,15 @@ nth0(N,[_|T],Item) :-       % Clause added KJ 4-5-87 to allow mode
     nth0(M,T,Item),
     N is M + 1.
 
-
+% player representation
 player(a1).
 player(b1).
+
+% changes player
 next_player(a1, b1).
 next_player(b1, a1).
 
+% returns player representation according to Carry parameter. carry(current representation, final representation, Carry)
 carry(a1, a1, 1).
 carry(a0, a1, 1).
 carry(a0, a0, 0).
@@ -29,6 +32,7 @@ carry(b0, b1, 1).
 carry(b0, b0, 0).
 carry(b1, b0, 0).
 
+% piece representation
 piece(a0).
 piece(a1).
 piece(a2).
@@ -198,6 +202,8 @@ not(X).
 
 
 % get list and number of current availables moves
+
+% available horizontal moves
 availableMoves_hor(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
 	elementAt(Board, X, Y, Elem),
 	(Elem==vv; Elem==p1 ; Elem==p2),
@@ -215,7 +221,7 @@ availableMoves_hor(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):
 	append([], List, FinalList).
 
 
-
+% available vertical moves
 availableMoves_ver(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):-
 	elementAt(Board, X, Y, Elem),
 	(Elem==vv; Elem==p1 ; Elem==p2),
@@ -232,7 +238,7 @@ availableMoves_ver(Board, Player, X, Y, Counter, List, FinalCounter, FinalList):
 	FinalCounter is Counter,
 	append([], List, FinalList).
 
-
+% calls availableMoves_hor and availableMoves_ver to count number of available moves.
 availableMoves(Board, Player, AvailMoves, MovesList):-
 	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
 	availableMoves_hor(Board, Player, CurrentX, 5, 0, [], FinalCounterHor, FinalListHor),
@@ -367,7 +373,7 @@ compare([A1|Tail1], [A2|Tail2]):-
 	A1 = A2,
 	compare(Tail1, Tail2).
 
-% check if move to position X,Y is possible
+% check if move to position X,Y is possible. Last parameter (0-> not carrying ; 1 -> carrying)
 checkMove(Board, X, Y, Player, 0):-
 	X >= 0 , X<5, Y >=0 , Y < 5,
 	elementAt(Board, X, Y, Element),
@@ -401,6 +407,7 @@ checkMove(Board, X, Y, Player, 1):-
 	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
 	(CurrentX == X ; CurrentY == Y),
 
+	% if current position has 2+ pieces or none
     elementAt(Board, CurrentX, CurrentY, Elem),
     atom_chars(Elem, ElementList1),
 	not(compare(ElementList1, [a,'0'])),
@@ -413,7 +420,7 @@ checkMove(Board, X, Y, Player, 1):-
 
 
 
-% automatic move (used by computer)
+% automatic move (used by computer) - last parameter (1-> horizontal ; 0-> vertical)
 move_pc(FinalBoard2, Player, CurrentX, CurrentY, Position, FinalBoard3, CarryPlayer1, Carry, 1):-
 	checkMove(FinalBoard2, CurrentX, Position, Player, Carry),
 
