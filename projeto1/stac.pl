@@ -1,6 +1,4 @@
 :-use_module(library(random)).
-:-use_module(library(sockets)).
-
 
 % get element at position N
 nth0(0, [Head|_], Head) :- !.
@@ -376,7 +374,7 @@ compare([A1|Tail1], [A2|Tail2]):-
 	compare(Tail1, Tail2).
 
 % check if move to position X,Y is possible. Last parameter (0-> not carrying ; 1 -> carrying)
-checkMove(Board, X, Y, Player, 0, Stream):-
+checkMove(Board, X, Y, Player, 0):-
 	X >= 0 , X<5, Y >=0 , Y < 5,
 	elementAt(Board, X, Y, Element),
 	% check if position is not occupied by opponent
@@ -392,12 +390,7 @@ checkMove(Board, X, Y, Player, 0, Stream):-
 	currentPlayerPosition(Board, Player, 0, 0, CurrentX, CurrentY),
 	(CurrentX == X ; CurrentY == Y).
 
-checkMove(Board,X,Y,Player, 0, Stream):-
-	format(Stream, '~q.~n', 'fail'),
-	write('fail'),flush_output(Stream),fail.
-
-
-checkMove(Board, X, Y, Player, 1, Stream):-
+checkMove(Board, X, Y, Player, 1):-
 	X >= 0 , X<5, Y >=0 , Y < 5,
 	elementAt(Board, X, Y, Element),
 	% check if position is not occupied by opponent
@@ -425,11 +418,6 @@ checkMove(Board, X, Y, Player, 1, Stream):-
 	not(compare(ElementList1, [b,'2'])),
 	not(compare(ElementList1, [b,'3'])).
 
-checkMove(Board,X,Y,Player, 1, Stream):-
-	format(Stream, '~q.~n', 'fail'),
-	write('fail'),
-	flush_output(Stream), fail.
-	
 
 
 % automatic move (used by computer) - last parameter (1-> horizontal ; 0-> vertical)
@@ -573,65 +561,3 @@ game(Board):-
 	Option>=0, Option < 4,
 	initBoard(Board),
 	game_aux(Board, a1, 0, Option).
-
-
-
-
-
-
-game_aux(Board, Player, 2, 1, X, Y, Carry, FinalBoard, Stream):-
-	printBoard(Board),
-	next_player(Player, NextPlayer),
-	write(NextPlayer), write(' won this game!'), nl,
-	game(B).
-
-game_aux(Board, Player, EndGame, 1, X, Y, Carry, FinalBoard, Stream):-
-	printBoard(Board),nl,nl,
-	write(Player) , write(' '), write('turn. '), nl,
-
-
-	checkMove(Board, X, Y, Player, Carry, Stream),
-
-	carry(Player, CarryPlayer, Carry),
-
-	% remove player spawn and move to another position
-	remove_spawn(Board, [], FB, CarryPlayer),
-	move(FB, X,Y, [], FinalBoard, CarryPlayer).
-
-
-
-
-port(60070).
-
-% launch me in sockets mode
-server:-
-	port(Port),
-	socket_server_open(Port, Socket),
-	socket_server_accept(Socket, _Client, Stream, [type(text)]),
-	write('Accepted connection'), nl,
-
-	serverLoop(Stream),
-	socket_server_close(Socket).
-
-
-% board, player, x, y, carry,
-
-% wait for commands
-serverLoop(Stream) :-
-	repeat,
-	read(Stream, ClientMsg),
-	write('Received: '), write(ClientMsg), nl,
-	parse_input(ClientMsg, MyReply, Stream),
-	format(Stream, '~q.~n', [MyReply]),
-	write('Wrote: '), write(MyReply), nl,
-	flush_output(Stream),
-	(ClientMsg == quit; ClientMsg == end_of_file), !.
-
-parse_input(comando(Board, Player, X, Y, Carry), Answer, Stream) :-
-	comando(Board, Player, X, Y, Carry, Answer,Stream).
-	
-parse_input(quit, ok-bye) :- !.
-		
-
-comando(Board, Player, X, Y, Carry, Answer, Stream) :-
-	game_aux(Board, Player, 0, 1, X, Y, Carry, Answer, Stream).
